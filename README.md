@@ -1,2 +1,2 @@
-# -airlyvision-test-pattern
+# Airlyvision-test-pattern
     AirlyVision Test Pattern Maker
