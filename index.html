@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <title>AirlyVision Test Pattern Maker</title>
+  <style>
+    :root{
+      --bg:#07111f;--panel:#0f1c2d;--panel2:#13243a;--line:#2a3d56;
+      --text:#f4f8ff;--muted:#9db0c8;--accent:#43a5ff;--ok:#41d38a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;background:linear-gradient(180deg,#07111f,#0a1525);
+      color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    header{
+      position:sticky;top:0;z-index:20;padding:16px 18px;
+      background:rgba(7,17,31,.92);backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--line)
+    }
+    h1{font-size:20px;margin:0}
+    .sub{font-size:12px;color:var(--muted);margin-top:4px}
+    main{display:grid;grid-template-columns:380px 1fr;gap:18px;padding:18px;min-height:calc(100vh - 74px)}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;max-height:none}
+    .section-title{font-size:14px;font-weight:700;margin:0 0 12px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input,select,button{
+      width:100%;border-radius:10px;border:1px solid var(--line);
+      background:var(--panel2);color:var(--text);padding:11px 12px;font-size:15px
+    }
+    input[type="color"]{height:42px;padding:4px}
+    input[type="range"]{padding:0}
+    input[type="file"]{padding:10px}
+    .row{margin-bottom:12px}
+    .checks{display:grid;gap:8px}
+    .check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text)}
+    .check input{width:20px;height:20px}
+    button{font-weight:700;cursor:pointer}
+    .primary{background:var(--accent);border-color:transparent;color:#001426}
+    .secondary{background:#1a2d46}
+    .preview-wrap{display:flex;flex-direction:column;gap:12px;min-width:0}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .badge{font-size:12px;color:var(--muted);padding:7px 10px;border:1px solid var(--line);border-radius:999px}
+    .canvas-shell{
+      background:#02060c;border:1px solid var(--line);border-radius:16px;
+      min-height:420px;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto
+    }
+    canvas{max-width:100%;max-height:72vh;box-shadow:0 16px 45px rgba(0,0,0,.4);background:#000}
+    .note{font-size:12px;line-height:1.6;color:var(--muted)}
+    .divider{height:1px;background:var(--line);margin:16px 0}
+    .mini{font-size:12px;color:var(--muted);margin-top:4px}
+    .tabs{display:flex;gap:8px;margin-top:12px}
+    .tab-btn{width:auto;padding:9px 14px;border-radius:999px}
+    .tab-btn.active{background:var(--accent);border-color:transparent;color:#001426}
+    .hidden{display:none!important}
+    .deck-layout{display:grid;grid-template-columns:380px 1fr;gap:18px;padding:18px;min-height:calc(100vh - 118px)}
+    .deck-controls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .deck-controls .wide{grid-column:1/-1}
+    .deck-main{display:flex;flex-direction:column;gap:14px}
+    .status-box{background:#02060c;border:1px solid var(--line);border-radius:16px;padding:18px;min-height:180px}
+    .status-line{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line)}
+    .status-line:last-child{border-bottom:0}
+    .status-value{font-weight:700;text-align:right;word-break:break-word}
+    .transport{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .transport button{min-height:62px;font-size:18px}
+    .play{background:#176b48;border-color:#2ec77e}
+    .stop{background:#682532;border-color:#ff5c78}
+    .clip-list{display:grid;gap:8px;max-height:360px;overflow:auto}
+    .clip-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+    .clip-item button{width:auto;padding:8px 12px}
+    .connection-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#65758a;margin-right:7px}
+    .connection-dot.ok{background:var(--ok)}
+    .connection-dot.bad{background:#ff5c78}
+    .warning{border:1px solid #8a6d22;background:#302813;color:#ffe8a0;border-radius:12px;padding:12px;font-size:12px;line-height:1.6}
+    .deck-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+    .deck-switch button.active{background:var(--accent);border-color:transparent;color:#001426}
+    .deck-label{font-size:12px;color:var(--muted);margin-bottom:5px}
+    .clip-item.current{outline:2px solid var(--accent)}
+    .clip-meta{font-size:11px;color:var(--muted);margin-top:3px}
+    @media(max-width:850px){
+      main,.deck-layout{grid-template-columns:1fr;padding:12px}
+      .transport{grid-template-columns:repeat(2,1fr)}
+      .canvas-shell{min-height:300px}
+      header{padding-top:max(14px,env(safe-area-inset-top))}
+      canvas{max-height:55vh}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>AirlyVision Test Pattern Maker</h1>
+  <div class="sub">LEDビジョン用テストパターン生成 ＋ HyperDeck 2台操作対応 v8</div>
+  <div class="tabs">
+    <button id="tabPattern" class="tab-btn active">テストパターン</button>
+    <button id="tabDeck" class="tab-btn">HyperDeck操作</button>
+  </div>
+</header>
+
+<main id="patternPage">
+  <section class="card">
+    <h2 class="section-title">出力サイズ</h2>
+    <div class="grid2">
+      <div class="row"><label>横解像度(px)</label><input id="width" type="number" min="1" value="1920"></div>
+      <div class="row"><label>縦解像度(px)</label><input id="height" type="number" min="1" value="1080"></div>
+    </div>
+
+    <h2 class="section-title">LEDパネル設定</h2>
+    <div class="grid2">
+      <div class="row"><label>1枚の横解像度</label><input id="panelW" type="number" min="1" value="192"></div>
+      <div class="row"><label>1枚の縦解像度</label><input id="panelH" type="number" min="1" value="108"></div>
+      <div class="row"><label>横枚数</label><input id="cols" type="number" min="1" value="10"></div>
+      <div class="row"><label>縦枚数</label><input id="rows" type="number" min="1" value="10"></div>
+    </div>
+    <button id="calcSize" class="secondary">パネル設定から出力サイズを計算</button>
+
+    <div class="divider"></div>
+
+    <h2 class="section-title">パターン</h2>
+    <div class="row">
+      <label>種類</label>
+      <select id="pattern">
+        <option value="grid">グリッド</option>
+        <option value="checker">チェッカー</option>
+        <option value="bars">カラーバー</option>
+        <option value="gray">グレースケール</option>
+        <option value="hatch">ハッチ</option>
+        <option value="crosshatch">クロスハッチ</option>
+        <option value="white">白</option>
+        <option value="black">黒</option>
+        <option value="red">赤</option>
+        <option value="green">緑</option>
+        <option value="blue">青</option>
+      </select>
+    </div>
+    <div class="grid2">
+      <div class="row"><label>背景色</label><input id="bg" type="color" value="#101010"></div>
+      <div class="row"><label>線色</label><input id="lineColor" type="color" value="#ffffff"></div>
+    </div>
+    <div class="grid2">
+      <div class="row"><label>ハッチ間隔(px)</label><input id="hatchSpacing" type="number" min="4" value="40"></div>
+      <div class="row"><label>ハッチ太さ(px)</label><input id="hatchWidth" type="number" min="1" value="2"></div>
+    </div>
+
+    <div class="checks">
+      <label class="check"><input id="showPanel" type="checkbox" checked>パネル境界線</label>
+      <label class="check"><input id="showNumber" type="checkbox" checked>パネル番号</label>
+      <label class="check"><input id="showCenter" type="checkbox" checked>中央十字</label>
+      <label class="check"><input id="showInfo" type="checkbox" checked>解像度表示</label>
+      <label class="check"><input id="showSafe" type="checkbox">セーフエリア(90%)</label>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2 class="section-title">ロゴ挿入</h2>
+    <div class="row">
+      <label>ロゴ画像を選択</label>
+      <input id="logoFile" type="file" accept="image/*">
+      <div class="mini">PNGの透過ロゴ推奨</div>
+    </div>
+    <div class="grid2">
+      <div class="row">
+        <label>位置</label>
+        <select id="logoPosition">
+          <option value="top-left">左上</option>
+          <option value="top-right" selected>右上</option>
+          <option value="bottom-left">左下</option>
+          <option value="bottom-right">右下</option>
+          <option value="center">中央</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>サイズ(画面幅%)</label>
+        <input id="logoScale" type="number" min="2" max="60" value="12">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="row">
+        <label>余白(px)</label>
+        <input id="logoMargin" type="number" min="0" value="24">
+      </div>
+      <div class="row">
+        <label>透明度(0-1)</label>
+        <input id="logoOpacity" type="number" min="0" max="1" step="0.1" value="1">
+      </div>
+    </div>
+    <button id="clearLogo" class="secondary">ロゴを削除</button>
+
+    <div class="divider"></div>
+
+    <div class="row"><label>ファイル名</label><input id="filename" value="AirlyVision-Test-Pattern"></div>
+    <button id="download" class="primary">PNGを保存・共有</button>
+    <button id="openImage" class="secondary" style="margin-top:10px">画像を開く</button>
+    <p class="note">入力内容はブラウザ内だけで処理されます。画像は外部へ送信されません。</p>
+  </section>
+
+  <section class="preview-wrap">
+    <div class="toolbar">
+      <span class="badge" id="sizeBadge">1920 × 1080 px</span>
+      <span class="badge" id="panelBadge">10 × 10 panels</span>
+      <span class="badge" id="logoBadge">ロゴ: なし</span>
+    </div>
+    <div class="canvas-shell"><canvas id="canvas" width="1920" height="1080"></canvas></div>
+  </section>
+</main>
+
+<section id="deckPage" class="deck-layout hidden">
+  <section class="card">
+    <div class="deck-switch">
+      <button id="deckSelect1" class="secondary active">デッキ1</button>
+      <button id="deckSelect2" class="secondary">デッキ2</button>
+    </div>
+    <h2 class="section-title">HyperDeck接続</h2>
+    <div class="row"><label>表示名</label><input id="deckLabel" placeholder="例：Shuttle HD"></div>
+    <div class="row"><label>IPアドレス</label><input id="deckIp" inputmode="decimal" placeholder="例：192.168.10.230"></div>
+    <div class="grid2">
+      <button id="deckConnect" class="primary">接続確認</button>
+      <button id="deckRefresh" class="secondary">状態更新</button>
+    </div>
+    <div class="divider"></div>
+    <h2 class="section-title">再生設定</h2>
+    <div class="checks">
+      <label class="check"><input id="deckLoop" type="checkbox">タイムラインをループ</label>
+      <label class="check"><input id="deckSingle" type="checkbox">選択クリップをループ</label>
+    </div>
+    <div class="divider"></div>
+    <div class="warning">PCとHyperDeckを同じLANに接続してください。まずは、このHTMLをPCに保存してChromeで直接開いてテストしてください。GitHub Pages版はHTTPS制限で接続できない場合があります。</div>
+    <p class="note">Shuttle HD／Studio HD Miniなど、REST API対応HyperDeckをIPで切り替えて操作します。デッキ1・2の設定はこのPC内に保存されます。</p>
+  </section>
+
+  <section class="deck-main">
+    <div class="toolbar">
+      <span class="badge"><span id="deckDot" class="connection-dot"></span><span id="deckConnection">未接続</span></span>
+      <span class="badge" id="deckModeBadge">状態：---</span>
+      <span class="badge" id="activeDeckBadge">デッキ1</span>
+    </div>
+    <div class="transport">
+      <button id="deckPrev" class="secondary">⏮ 前</button>
+      <button id="deckPlay" class="play">▶ 再生</button>
+      <button id="deckStop" class="stop">■ 停止</button>
+      <button id="deckNext" class="secondary">次 ⏭</button>
+    </div>
+    <div class="status-box">
+      <div class="status-line"><span>機器名</span><span id="deckName" class="status-value">---</span></div>
+      <div class="status-line"><span>製品名</span><span id="deckProduct" class="status-value">---</span></div>
+      <div class="status-line"><span>再生状態</span><span id="deckMode" class="status-value">---</span></div>
+      <div class="status-line"><span>現在のクリップ</span><span id="deckClip" class="status-value">---</span></div>
+      <div class="status-line"><span>タイムコード</span><span id="deckTime" class="status-value">---</span></div>
+      <div class="status-line"><span>最終通信</span><span id="deckLast" class="status-value">---</span></div>
+    </div>
+    <section class="card">
+      <h2 class="section-title">クリップ一覧</h2>
+      <div id="deckClips" class="clip-list"><div class="note">接続後にタイムラインを取得します。</div></div>
+    </section>
+    <section class="card">
+      <h2 class="section-title">接続診断</h2>
+      <div id="deckLog" class="note">まだ通信していません。</div>
+    </section>
+  </section>
+</section>
+<script>
+const $ = id => document.getElementById(id);
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
+let logoImg = null;
+let logoName = '';
+
+const ids = ['width','height','panelW','panelH','cols','rows','pattern','bg','lineColor',
+             'hatchSpacing','hatchWidth','showPanel','showNumber','showCenter','showInfo','showSafe',
+             'logoPosition','logoScale','logoMargin','logoOpacity','filename'];
+
+ids.forEach(id => $(id).addEventListener('input', draw));
+
+$('calcSize').addEventListener('click', () => {
+  $('width').value = Math.max(1, +$('panelW').value) * Math.max(1, +$('cols').value);
+  $('height').value = Math.max(1, +$('panelH').value) * Math.max(1, +$('rows').value);
+  draw();
+});
+
+async function canvasToBlob(){
+  return await new Promise((resolve, reject) => {
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('PNGの作成に失敗しました')), 'image/png');
+  });
+}
+
+$('download').addEventListener('click', async () => {
+  try{
+    draw();
+    const name = ($('filename').value || 'AirlyVision-Test-Pattern').replace(/[\\/:*?"<>|]/g,'_') + '.png';
+    const blob = await canvasToBlob();
+    const file = new File([blob], name, {type:'image/png'});
+
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({
+        files:[file],
+        title:'AirlyVision Test Pattern',
+        text:'作成したテストパターン画像'
+      });
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+  }catch(err){
+    if(err && err.name === 'AbortError') return;
+    alert('保存できませんでした。下の「画像を開く」を押して、画像を長押しして保存してください。');
+  }
+});
+
+$('openImage').addEventListener('click', async () => {
+  try{
+    draw();
+    const blob = await canvasToBlob();
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    if(!win){
+      location.href = url;
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }catch(err){
+    alert('画像を開けませんでした。');
+  }
+});
+
+$('logoFile').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      logoImg = img;
+      logoName = file.name;
+      $('logoBadge').textContent = 'ロゴ: ' + logoName;
+      draw();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+$('clearLogo').addEventListener('click', () => {
+  logoImg = null;
+  logoName = '';
+  $('logoFile').value = '';
+  $('logoBadge').textContent = 'ロゴ: なし';
+  draw();
+});
+
+function vals(){
+  return {
+    w:Math.max(1,Math.min(12000,+$('width').value||1920)),
+    h:Math.max(1,Math.min(12000,+$('height').value||1080)),
+    pw:Math.max(1,+$('panelW').value||192),
+    ph:Math.max(1,+$('panelH').value||108),
+    cols:Math.max(1,+$('cols').value||1),
+    rows:Math.max(1,+$('rows').value||1),
+    pattern:$('pattern').value,
+    bg:$('bg').value,
+    line:$('lineColor').value,
+    hatchSpacing:Math.max(4,+$('hatchSpacing').value||40),
+    hatchWidth:Math.max(1,+$('hatchWidth').value||2),
+    logoPosition:$('logoPosition').value,
+    logoScale:Math.max(2,+$('logoScale').value||12),
+    logoMargin:Math.max(0,+$('logoMargin').value||24),
+    logoOpacity:Math.max(0,Math.min(1,+$('logoOpacity').value||1))
+  }
+}
+
+function drawHatch(w,h,spacing,lineWidth,color,reverse=false){
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  if(!reverse){
+    for(let x=-h; x<=w+h; x+=spacing){
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x+h, h);
+    }
+  }else{
+    for(let x=0; x<=w+h*2; x+=spacing){
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x-h, h);
+    }
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function fillPattern(v){
+  const {w,h,pattern,bg,line,hatchSpacing,hatchWidth}=v;
+  ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+
+  if(['white','black','red','green','blue'].includes(pattern)){
+    const colors={white:'#fff',black:'#000',red:'#f00',green:'#0f0',blue:'#00f'};
+    ctx.fillStyle=colors[pattern];ctx.fillRect(0,0,w,h);return;
+  }
+  if(pattern==='bars'){
+    const c=['#fff','#ff0','#0ff','#0f0','#f0f','#f00','#00f','#000'];
+    c.forEach((x,i)=>{ctx.fillStyle=x;ctx.fillRect(i*w/c.length,0,w/c.length,h)});
+  } else if(pattern==='gray'){
+    for(let i=0;i<10;i++){
+      const g=Math.round(255*i/9);
+      ctx.fillStyle=`rgb(${g},${g},${g})`;
+      ctx.fillRect(i*w/10,0,w/10,h);
+    }
+  } else if(pattern==='checker'){
+    const s=Math.max(20,Math.round(Math.min(w,h)/12));
+    for(let y=0;y<h;y+=s)for(let x=0;x<w;x+=s){
+      ctx.fillStyle=((x/s+y/s)%2===0)?'#fff':'#000';ctx.fillRect(x,y,s,s);
+    }
+  } else if(pattern==='hatch'){
+    drawHatch(w,h,hatchSpacing,hatchWidth,line,false);
+  } else if(pattern==='crosshatch'){
+    drawHatch(w,h,hatchSpacing,hatchWidth,line,false);
+    drawHatch(w,h,hatchSpacing,hatchWidth,line,true);
+  } else {
+    const step=Math.max(20,Math.round(Math.min(w,h)/20));
+    ctx.strokeStyle='rgba(255,255,255,.28)';ctx.lineWidth=Math.max(1,w/1920);
+    ctx.beginPath();
+    for(let x=0;x<=w;x+=step){ctx.moveTo(x,0);ctx.lineTo(x,h)}
+    for(let y=0;y<=h;y+=step){ctx.moveTo(0,y);ctx.lineTo(w,y)}
+    ctx.stroke();
+  }
+}
+
+function drawLogo(v){
+  if(!logoImg) return;
+  const targetW = v.w * (v.logoScale / 100);
+  const ratio = logoImg.height / logoImg.width;
+  const targetH = targetW * ratio;
+  const m = v.logoMargin;
+  let x = m, y = m;
+
+  if(v.logoPosition === 'top-right'){
+    x = v.w - targetW - m; y = m;
+  } else if(v.logoPosition === 'bottom-left'){
+    x = m; y = v.h - targetH - m;
+  } else if(v.logoPosition === 'bottom-right'){
+    x = v.w - targetW - m; y = v.h - targetH - m;
+  } else if(v.logoPosition === 'center'){
+    x = (v.w - targetW) / 2; y = (v.h - targetH) / 2;
+  }
+
+  ctx.save();
+  ctx.globalAlpha = v.logoOpacity;
+  ctx.drawImage(logoImg, x, y, targetW, targetH);
+  ctx.restore();
+}
+
+function draw(){
+  const v=vals();
+  canvas.width=v.w;canvas.height=v.h;
+  fillPattern(v);
+
+  const sx=v.w/v.cols, sy=v.h/v.rows;
+  const lw=Math.max(2,Math.min(v.w,v.h)/500);
+  ctx.strokeStyle=v.line;ctx.lineWidth=lw;
+
+  if($('showPanel').checked){
+    ctx.beginPath();
+    for(let c=0;c<=v.cols;c++){const x=c*sx;ctx.moveTo(x,0);ctx.lineTo(x,v.h)}
+    for(let r=0;r<=v.rows;r++){const y=r*sy;ctx.moveTo(0,y);ctx.lineTo(v.w,y)}
+    ctx.stroke();
+  }
+  if($('showNumber').checked && v.cols*v.rows<=400){
+    const fs=Math.max(10,Math.min(sx,sy)*.22);
+    ctx.font=`700 ${fs}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    for(let r=0;r<v.rows;r++)for(let c=0;c<v.cols;c++){
+      const t=String(r*v.cols+c+1);
+      ctx.lineWidth=Math.max(2,fs/10);ctx.strokeStyle='rgba(0,0,0,.75)';
+      ctx.strokeText(t,(c+.5)*sx,(r+.5)*sy);
+      ctx.fillStyle=v.line;ctx.fillText(t,(c+.5)*sx,(r+.5)*sy);
+    }
+  }
+  if($('showCenter').checked){
+    ctx.strokeStyle='#ff2d55';ctx.lineWidth=Math.max(3,lw*1.5);
+    ctx.beginPath();ctx.moveTo(v.w/2,0);ctx.lineTo(v.w/2,v.h);
+    ctx.moveTo(0,v.h/2);ctx.lineTo(v.w,v.h/2);ctx.stroke();
+    ctx.beginPath();ctx.arc(v.w/2,v.h/2,Math.min(v.w,v.h)*.12,0,Math.PI*2);ctx.stroke();
+  }
+  if($('showSafe').checked){
+    const mX=v.w*.05,mY=v.h*.05;
+    ctx.setLineDash([Math.max(8,lw*4),Math.max(8,lw*4)]);
+    ctx.strokeStyle='#ffd60a';ctx.lineWidth=lw;
+    ctx.strokeRect(mX,mY,v.w-mX*2,v.h-mY*2);ctx.setLineDash([]);
+  }
+  if($('showInfo').checked){
+    const fs=Math.max(18,Math.min(v.w,v.h)*.035);
+    const text=`${v.w} × ${v.h} px  /  ${v.cols} × ${v.rows} panels`;
+    ctx.font=`700 ${fs}px sans-serif`;ctx.textAlign='left';ctx.textBaseline='top';
+    const pad=fs*.45;
+    const tw=ctx.measureText(text).width;
+    ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(pad,pad,tw+pad*2,fs+pad*1.5);
+    ctx.fillStyle='#fff';ctx.fillText(text,pad*2,pad*1.25);
+  }
+
+  drawLogo(v);
+
+  $('sizeBadge').textContent=`${v.w} × ${v.h} px`;
+  $('panelBadge').textContent=`${v.cols} × ${v.rows} panels`;
+  localStorage.setItem('airlyPatternSettings', JSON.stringify(
+    Object.fromEntries(ids.map(id=>[id,$(id).value]))
+  ));
+  localStorage.setItem('airlyPatternChecks', JSON.stringify({
+    showPanel:$('showPanel').checked,
+    showNumber:$('showNumber').checked,
+    showCenter:$('showCenter').checked,
+    showInfo:$('showInfo').checked,
+    showSafe:$('showSafe').checked
+  }));
+}
+try{
+  const s=JSON.parse(localStorage.getItem('airlyPatternSettings')||'null');
+  if(s) ids.forEach(id=>{ if(s[id]!==undefined) $(id).value=s[id] });
+  const c=JSON.parse(localStorage.getItem('airlyPatternChecks')||'null');
+  if(c){
+    $('showPanel').checked=!!c.showPanel;
+    $('showNumber').checked=!!c.showNumber;
+    $('showCenter').checked=!!c.showCenter;
+    $('showInfo').checked=!!c.showInfo;
+    $('showSafe').checked=!!c.showSafe;
+  }
+}catch(e){}
+
+// ---- Page tabs ----
+const showPage = page => {
+  const isPattern = page === 'pattern';
+  $('patternPage').classList.toggle('hidden', !isPattern);
+  $('deckPage').classList.toggle('hidden', isPattern);
+  $('tabPattern').classList.toggle('active', isPattern);
+  $('tabDeck').classList.toggle('active', !isPattern);
+};
+$('tabPattern').addEventListener('click',()=>showPage('pattern'));
+$('tabDeck').addEventListener('click',()=>showPage('deck'));
+
+// ---- HyperDeck REST controller v8 (2 decks) ----
+let activeDeck = 0;
+let deckTimeline = [];
+let deckMediaClips = [];
+const defaultDecks = [
+  {label:'Shuttle HD', ip:'192.168.10.230'},
+  {label:'Studio HD Mini', ip:'192.168.10.231'}
+];
+let deckProfiles;
+try{ deckProfiles=JSON.parse(localStorage.getItem('airlyHyperDeckProfiles')||'null') || defaultDecks; }
+catch(e){ deckProfiles=defaultDecks; }
+while(deckProfiles.length<2) deckProfiles.push({...defaultDecks[deckProfiles.length]});
+
+const nowText=()=>new Date().toLocaleTimeString('ja-JP');
+const deckLog=msg=>{$('deckLog').textContent=msg};
+const setDeckConnection=(state,text)=>{
+  $('deckDot').className='connection-dot'+(state?' ok':' bad');
+  $('deckConnection').textContent=text;
+};
+function saveDeckProfile(){
+  deckProfiles[activeDeck]={label:$('deckLabel').value.trim()||`デッキ${activeDeck+1}`,ip:$('deckIp').value.trim()};
+  localStorage.setItem('airlyHyperDeckProfiles',JSON.stringify(deckProfiles));
+  $('activeDeckBadge').textContent=deckProfiles[activeDeck].label||`デッキ${activeDeck+1}`;
+}
+function loadDeckProfile(index){
+  saveDeckProfile();
+  activeDeck=index;
+  const p=deckProfiles[index]||defaultDecks[index];
+  $('deckLabel').value=p.label||'';
+  $('deckIp').value=p.ip||'';
+  $('deckSelect1').classList.toggle('active',index===0);
+  $('deckSelect2').classList.toggle('active',index===1);
+  $('activeDeckBadge').textContent=p.label||`デッキ${index+1}`;
+  setDeckConnection(false,'未接続');
+  ['deckName','deckProduct','deckMode','deckClip','deckTime','deckLast'].forEach(id=>$(id).textContent='---');
+  $('deckModeBadge').textContent='状態：---';
+  $('deckClips').innerHTML='<div class="note">「接続確認」を押してください。</div>';
+  deckLog(`${p.label||`デッキ${index+1}`}を選択しました。`);
+}
+const deckBase=()=>`http://${$('deckIp').value.trim()}/control/api/v1`;
+async function deckRequest(path,options={}){
+  saveDeckProfile();
+  if(!$('deckIp').value.trim()) throw new Error('IPアドレスを入力してください。');
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),6000);
+  try{
+    const headers={...(options.body!==undefined?{'Content-Type':'application/json'}:{}),...(options.headers||{})};
+    const res=await fetch(deckBase()+path,{...options,headers,signal:controller.signal,cache:'no-store'});
+    const text=await res.text();
+    let data=null; try{data=text?JSON.parse(text):null}catch(e){data=text}
+    if(!res.ok) throw new Error(`HTTP ${res.status}${text?' '+text:''}`);
+    $('deckLast').textContent=nowText();
+    return data;
+  }finally{clearTimeout(timer)}
+}
+function explainDeckError(err){
+  const m=err&&err.message?err.message:String(err);
+  if(location.protocol==='https:') return `接続できません：${m}。HTTPSページからHyperDeckのHTTP通信が止められた可能性があります。HTMLをPCへ保存して直接開いてください。`;
+  if(m.includes('AbortError')) return '6秒以内に応答がありません。IP、LANケーブル、同一ネットワークを確認してください。';
+  return `通信エラー：${m}`;
+}
+function clipNameById(id){
+  const c=deckMediaClips.find(x=>x.clipUniqueId===id);
+  return c ? (c.filePath||`Clip ${id}`) : `Clip ${id}`;
+}
+async function ensureOutput(){
+  const t=await deckRequest('/transports/0');
+  if(t&&t.mode!=='Output') await deckRequest('/transports/0',{method:'PUT',body:JSON.stringify({mode:'Output'})});
+}
+async function getTimeline(rebuild=false){
+  try{return await deckRequest('/timelines/0')}
+  catch(e){
+    if(!rebuild){
+      await deckRequest('/timelines/0/rebuild',{method:'POST'});
+      return await getTimeline(true);
+    }
+    throw e;
+  }
+}
+async function refreshDeck(){
+  try{
+    const [product,transport,playback,timecode,clipIndex,clipInfo,clips,timeline]=await Promise.all([
+      deckRequest('/system/product'), deckRequest('/transports/0'),
+      deckRequest('/transports/0/playback'), deckRequest('/transports/0/timecode'),
+      deckRequest('/transports/0/clipIndex'), deckRequest('/transports/0/clip'),
+      deckRequest('/clips').catch(()=>({clips:[]})), getTimeline().catch(()=>({clips:[]}))
+    ]);
+    deckMediaClips=(clips&&clips.clips)||[];
+    deckTimeline=(timeline&&timeline.clips)||[];
+    setDeckConnection(true,'接続中');
+    $('deckName').textContent=product.deviceName||'HyperDeck';
+    $('deckProduct').textContent=product.productName||'---';
+    const playing=playback&&Number(playback.speed)!==0;
+    const state=transport.mode!=='Output'?transport.mode:(playing?'再生中':'停止');
+    $('deckMode').textContent=state;
+    $('deckModeBadge').textContent='状態：'+state;
+    const ci=clipIndex&&clipIndex.clipIndex;
+    const current=clipInfo&&clipInfo.clip;
+    $('deckClip').textContent=current&&current.filePath ? current.filePath : (ci!=null&&deckTimeline[ci]?clipNameById(deckTimeline[ci].clipUniqueId):'---');
+    $('deckTime').textContent=(timecode&&timecode.display)||'---';
+    $('deckLoop').checked=!!(playback&&playback.loop);
+    $('deckSingle').checked=!!(playback&&playback.singleClip);
+    renderDeckClips(ci);
+    deckLog(`接続成功：${product.productName||'HyperDeck'} / REST API`);
+  }catch(err){setDeckConnection(false,'接続失敗');deckLog(explainDeckError(err));throw err}
+}
+function renderDeckClips(currentIndex=null){
+  const box=$('deckClips'); box.innerHTML='';
+  if(!deckTimeline.length){box.innerHTML='<div class="note">再生可能なタイムラインがありません。メディアと対応フォーマットを確認してください。</div>';return}
+  deckTimeline.forEach((tc,i)=>{
+    const name=clipNameById(tc.clipUniqueId);
+    const row=document.createElement('div');row.className='clip-item'+(i===currentIndex?' current':'');
+    const text=document.createElement('div');
+    const title=document.createElement('div');title.textContent=`${i+1}. ${name}`;
+    const meta=document.createElement('div');meta.className='clip-meta';meta.textContent=tc.durationTimecode||`${tc.frameCount||0} frames`;
+    text.append(title,meta);
+    const btn=document.createElement('button');btn.className='secondary';btn.textContent='選択・再生';
+    btn.onclick=()=>playTimelineIndex(i);
+    row.append(text,btn);box.appendChild(row);
+  });
+}
+async function updatePlaybackSettings(extra={}){
+  const current=await deckRequest('/transports/0/playback');
+  const body={
+    type:current.type||'Play', loop:$('deckLoop').checked,
+    singleClip:$('deckSingle').checked, speed:current.speed??0,
+    ...extra
+  };
+  await deckRequest('/transports/0/playback',{method:'PUT',body:JSON.stringify(body)});
+}
+async function playDeck(){
+  try{
+    await ensureOutput();
+    await updatePlaybackSettings({type:'Play',speed:1});
+    await deckRequest('/transports/0/play',{method:'POST'});
+    deckLog('再生コマンドを送信しました。');setTimeout(()=>refreshDeck().catch(()=>{}),300);
+  }catch(e){deckLog(explainDeckError(e))}
+}
+async function stopDeck(){
+  try{await deckRequest('/transports/0/stop',{method:'POST'});deckLog('停止コマンドを送信しました。');setTimeout(()=>refreshDeck().catch(()=>{}),250)}
+  catch(e){deckLog(explainDeckError(e))}
+}
+async function playTimelineIndex(index){
+  try{
+    if(!deckTimeline.length) await refreshDeck();
+    const clip=deckTimeline[index];if(!clip) throw new Error('クリップが見つかりません。');
+    await ensureOutput();
+    await updatePlaybackSettings({type:'Play',position:Number(clip.timelineIn)||0,speed:0});
+    await deckRequest('/transports/0/play',{method:'POST'});
+    deckLog(`${clipNameById(clip.clipUniqueId)} を再生しました。`);setTimeout(()=>refreshDeck().catch(()=>{}),300);
+  }catch(e){deckLog(explainDeckError(e))}
+}
+async function moveClip(delta){
+  try{
+    const c=await deckRequest('/transports/0/clipIndex');
+    let i=c&&c.clipIndex!=null?c.clipIndex:0;
+    i=Math.max(0,Math.min(deckTimeline.length-1,i+delta));
+    await playTimelineIndex(i);
+  }catch(e){deckLog(explainDeckError(e))}
+}
+async function changePlaybackOption(){
+  try{await updatePlaybackSettings();deckLog('ループ設定を更新しました。');setTimeout(()=>refreshDeck().catch(()=>{}),200)}
+  catch(e){deckLog(explainDeckError(e))}
+}
+$('deckSelect1').addEventListener('click',()=>loadDeckProfile(0));
+$('deckSelect2').addEventListener('click',()=>loadDeckProfile(1));
+$('deckLabel').addEventListener('input',saveDeckProfile);
+$('deckIp').addEventListener('change',saveDeckProfile);
+$('deckConnect').addEventListener('click',()=>refreshDeck().catch(()=>{}));
+$('deckRefresh').addEventListener('click',()=>refreshDeck().catch(()=>{}));
+$('deckPlay').addEventListener('click',playDeck);
+$('deckStop').addEventListener('click',stopDeck);
+$('deckPrev').addEventListener('click',()=>moveClip(-1));
+$('deckNext').addEventListener('click',()=>moveClip(1));
+$('deckLoop').addEventListener('change',changePlaybackOption);
+$('deckSingle').addEventListener('change',changePlaybackOption);
+$('deckLabel').value=deckProfiles[0].label;
+$('deckIp').value=deckProfiles[0].ip;
+$('activeDeckBadge').textContent=deckProfiles[0].label||'デッキ1';
+
+draw();
+</script>
+</body>
+</html>
